@@ -1,0 +1,8 @@
+# Ignore .env file
+.env
+
+# Ignore Server/requests.rest file
+Server/requests.rest
+
+# Ignore node_modules directory
+node_modules/
