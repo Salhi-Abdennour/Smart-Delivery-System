@@ -1,36 +1,39 @@
-// Load environment variables from a .env file into process.env
 require("dotenv").config();
-
-// Import the Express framework
 const express = require("express");
+const helmet = require('helmet');
+const signUpSystem = require("./routes/sing_up_system.js");
 
-// Create an Express application
 const app = express();
 
-app.use((req,res,next)=>{
-    res.setHeader('Content-Security-Policy', "connect-src https://api.themoviedb.org 'self'; default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'unsafe-inline' 'self'; style-src 'unsafe-inline' 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com");
-    next();
-})
+app.use(helmet());
 
-// Middleware to parse JSON bodies from incoming requests
-app.use(express.json());
-// Middleware to parse URL-encoded bodies from incoming requests
-app.use(express.urlencoded({ extended: true }));
-
-// Get the port number from environment variables or default to 3000
-const PORT = process.env.PORT || 3000;
-
-// Start the server and listen on the specified port
-app.listen(PORT, () => {
-    console.log(`App running on PORT ${PORT}`); // Log the port number the server is running on
+app.use((req, res, next) => {
+  res.setHeader('Content-Security-Policy', "connect-src https://api.themoviedb.org 'self'; default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com");
+  next();
 });
 
-// Import the administration sign-up route
-const administrationSignUp = require("./routes/moderation_sing_up");
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Use the administration sign-up route for handling requests to /administration-sing-up
-app.use("/moderation-sing-up", administrationSignUp);
+const PORT = process.env.PORT || 3000;
 
-app.get("/",(req,res)=>{
-    res.send("Hey")
-})
+app.get("/", (req, res) => {
+  res.send("Hello");
+});
+
+app.use('/moderateurs-sign-up', signUpSystem);
+app.use('/expediteur-sign-up', signUpSystem);
+app.use('/livreur-sign-up', signUpSystem);
+
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+app.listen(PORT, () => {
+  console.log(`App running on PORT ${PORT}`);
+});
