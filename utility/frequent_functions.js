@@ -3,7 +3,6 @@ const bcrypt = require('bcrypt');
 const parser = require("ua-parser-js");
 const fs = require("fs").promises;
 const path = require("path");
-const { rejects } = require('assert');
 
 
 // Function to open a connection to a SQLite database
@@ -131,22 +130,44 @@ function postRequestTypeValidation(arr, signUpType) {
 }
 
 
-async function findConflicts(query,db){
-    try{
-        const row = await new Promise((resolve,reject)=>{
-            db.get(query,(err,row)=>{
-                if(err){
-                    reject(err)
-                }else{
-                    resolve(row)
+async function findConflicts(query, params, db) {
+    try {
+        const row = await new Promise((resolve, reject) => {
+            db.get(query, params, (err, row) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(row);
                 }
-            })
-        })
+            });
+        });
         return row;
-    }catch{
-        console.error(err)
+    } catch (err) {
+        console.error("Error in findConflicts:", err);
+        throw err; // Re-throw the error to handle it where findConflicts is called
     }
 }
+
+async function areFilesIdentical(file1Path, file2Path) {
+    try {
+      // Read both files into buffers
+      const rectoBuffer = await fs.readFile(file1Path);
+      const versoBuffer = await fs.readFile(file2Path);
+  
+      // Compare file contents
+        if(rectoBuffer.equals(versoBuffer)){
+            await deleteFileFromTemp(file1Path);
+            await deleteFileFromTemp(file2Path);
+        }
+
+
+      return {"cinRecto,cinVerso not identical":!rectoBuffer.equals(versoBuffer)}
+    } catch (err) {
+        console.error("Error reading files or comparing:", err);
+        throw err; // Rethrow the error for handling elsewhere
+    }
+
+  }
 
 
 module.exports = {
@@ -166,5 +187,6 @@ module.exports = {
   readFileToBuffer,
   deleteFileFromTemp,
   postRequestTypeValidation,
-  findConflicts
+  findConflicts,
+  areFilesIdentical
 };

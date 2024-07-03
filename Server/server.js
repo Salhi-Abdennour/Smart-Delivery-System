@@ -3,6 +3,7 @@ const express = require("express");
 const helmet = require('helmet');
 const signUpSystem = require("./routes/sing_up_system.js");
 
+
 const app = express();
 
 app.use(helmet());
@@ -13,7 +14,9 @@ app.use((req, res, next) => {
 });
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: false }));
+app.disable('x-powered-by')
+
 
 const PORT = process.env.PORT || 3000;
 
