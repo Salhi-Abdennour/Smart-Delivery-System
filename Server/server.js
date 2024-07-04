@@ -1,8 +1,8 @@
 require("dotenv").config();
 const express = require("express");
 const helmet = require('helmet');
-const signUpSystem = require("./routes/sing_up_system.js");
-
+const signUpSystem = require("./routes/signupSystem.js");
+const loginSystem = require("./routes/loginSystem.js")
 
 const app = express();
 
@@ -24,9 +24,13 @@ app.get("/", (req, res) => {
   res.send("Hello");
 });
 
-app.use('/moderateurs-sign-up', signUpSystem);
-app.use('/expediteur-sign-up', signUpSystem);
-app.use('/livreur-sign-up', signUpSystem);
+app.use('/moderateurs-signup', signUpSystem);
+app.use('/expediteur-signup', signUpSystem);
+app.use('/livreur-signup', signUpSystem);
+
+app.use("/moderateurs-login",loginSystem);
+app.use("/expediteur-login",loginSystem);
+app.use("/livreur-login",loginSystem);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);

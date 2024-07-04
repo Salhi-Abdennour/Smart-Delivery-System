@@ -32,8 +32,8 @@ function closeDatabase(db) {
     });
 }
 function emailValidator(email) {
-  const regex = /^[\w\-\.]+@([\w-]+\.)+[\w-]{2,}$/;
-  return { emailIsValid: regex.test(email) };
+  const regex = /^(?!.*\.\.)[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return { emailIsValid: regex.test(email) || email == null };
 }
 
 function userNameValidator(username) {
@@ -169,6 +169,21 @@ async function areFilesIdentical(file1Path, file2Path) {
 
   }
 
+async function cleanUp(req){
+  try {
+    // Execute cleanup even if there was an error in previous middleware
+    if (req.files && req.files["recto"] && req.files["recto"][0].path) {
+      await deleteFileFromTemp(req.files["recto"][0].path);
+    }
+    if (req.files && req.files["verso"] && req.files["verso"][0].path) {
+      await deleteFileFromTemp(req.files["verso"][0].path);
+    }
+  } catch (err) {
+    console.error("Error cleaning up files:", err.message);
+    // Handle cleanup error gracefully, if needed
+  }
+}
+
 
 module.exports = {
   openDatabase,
@@ -188,5 +203,6 @@ module.exports = {
   deleteFileFromTemp,
   postRequestTypeValidation,
   findConflicts,
-  areFilesIdentical
+  areFilesIdentical,
+  cleanUp
 };
