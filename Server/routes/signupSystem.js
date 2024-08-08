@@ -4,7 +4,7 @@ const path = require("path");
 const { v4: uuidv4 } = require('uuid');
 const FUF = require("./../../utility/utilityFunctions.js");
 const {
-  signUpTypeValidation,
+  signUpLoginTypeValidation,
   fileUploadValidation,
   inputValidation,
   dbConflictCheck,
@@ -48,7 +48,7 @@ router.get("/", (req, res) => {
 
 
 router.post("/",
-  signUpTypeValidation,
+  signUpLoginTypeValidation,
   upload.fields([
     { name: 'recto', maxCount: 1 },
     { name: 'verso', maxCount: 1 }

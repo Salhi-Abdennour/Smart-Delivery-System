@@ -1,15 +1,25 @@
 const express = require("express");
- 
+const {
+    manipulationOfFealdsDetectorLogin,
+    inputValidationForLogin,
+    signUpLoginTypeValidation,
+    authenticateUser
+} = require("../../utility/middlewares")
+
 const router = express.Router();
-const {manipulationOfFealdsDetectorLogin} = require("../../utility/middlewares")
 
 
-router.post("/",manipulationOfFealdsDetectorLogin,async (req,res)=>{
-    res.status(200).json(req.body)
-})
+router.post("/",
+    signUpLoginTypeValidation,
+    manipulationOfFealdsDetectorLogin,
+    inputValidationForLogin,
+    authenticateUser,
+    async(req,res)=>{
+        res.status(200).json(req.body)
+    })
 
 router.get("/",(req,res)=>{
-    res.send("Hey it's login")
+    res.send("Hello")
 })
 
 module.exports = router;

@@ -4,14 +4,13 @@ const parser = require("ua-parser-js");
 const fs = require("fs").promises;
 const path = require("path");
 
-
 // Function to open a connection to a SQLite database
 function openDatabase(sqlite3, databasePath, mod) {
     // Create a new SQLite database connection
     let db = new sqlite3.Database(databasePath, mod, (err) => {
         if (err) {
             console.error(err.message); // Log any errors that occur during the connection
-            return res.status(500)
+            throw new Error('Database connection failed');
         } else {
             console.log('Connected to the database successfully!'); // Log a success message if the connection is successful
         }
@@ -56,11 +55,16 @@ function uniqueIdentifier(cinNumber) {
   return parseInt(hash.slice(0, 8), 16);
 }
 
-function userAgentGenerator(cinNumber, userAgent) {
+function taxIdValidator(taxId){
+  const regex = /^[0-9]{7}[A-Z][ABPHDN][MNCP][0-9]{3}$/;
+  return { taxIdIsValid: regex.test(taxId) || taxId == null };
+}
+
+function userAgentGenerator(cinNumber, userAgent, signUpLoginType) {
   const hashedNumber = uniqueIdentifier(cinNumber);
   const uaResult = parser(userAgent);
 
-  return `Moderator/${hashedNumber}/` +
+  return `${signUpLoginType}/${hashedNumber}/` +
     `${uaResult.os.name}${uaResult.os.version}/` +
     `CPU:${uaResult.cpu.architecture}/` +
     `${uaResult.engine.name}:${uaResult.engine.version}/` +
@@ -110,6 +114,22 @@ function generateSalt(length) {
 
 async function hashPassword(password, salt) {
   return bcrypt.hash(password + salt, 10);
+}
+
+async function verifyPassword(password, salt, hash) {
+  const result = new Promise((resolve,reject)=>{
+    bcrypt.compare(password + salt, hash, (err, result) => {
+      if (err) {
+        reject(err)
+      }else{
+        resolve(result);
+      }
+      
+    });
+  })
+
+  return result;
+  
 }
 
 async function readFileToBuffer(filePath) {
@@ -184,6 +204,25 @@ async function cleanUp(req){
   }
 }
 
+async function getItemFromDb(db,query,arrayOfValues){
+  const row = await new Promise((resolve,reject)=>{
+    db.get(query,[...arrayOfValues],(err,row)=>{
+      if(err){
+        reject(err)
+      }else{
+        resolve(row)
+      }
+    })
+  })
+  return row;
+}
+
+async function userExist(db,tableName,emailPhoneNumber,passwd,loginType){
+  const query = `SELECT 1 FROM ${tableName} WHERE ${loginType} = ? AND passwd = ?;`;
+  console.log(query);
+}
+
+
 
 module.exports = {
   openDatabase,
@@ -199,10 +238,14 @@ module.exports = {
   customRespondBasedOnInput,
   generateSalt,
   hashPassword,
+  verifyPassword,
   readFileToBuffer,
   deleteFileFromTemp,
   postRequestTypeValidation,
   findConflicts,
   areFilesIdentical,
-  cleanUp
+  getItemFromDb,
+  cleanUp,
+  userExist,
+  taxIdValidator
 };
