@@ -1,8 +1,10 @@
 require("dotenv").config();
 const express = require("express");
+const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const signUpSystem = require("./routes/signupSystem.js");
 const loginSystem = require("./routes/loginSystem.js")
+const moderatatorDashboard = require("./routes/dashboard.js")
 
 const app = express();
 
@@ -13,24 +15,31 @@ app.use((req, res, next) => {
   next();
 });
 
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.disable('x-powered-by')
+app.use(cookieParser());
 
 
 const PORT = process.env.PORT || 3000;
 
+const userTypes = ['moderateurs', 'expediteur', 'livreur'];
+
+const setupRoutes = (app, system, handler)=>{
+  userTypes.forEach(userType => {
+    app.use(`/${userType}-${system}`, handler)
+  });
+}
+
 app.get("/", (req, res) => {
   res.send("Hello");
+  console.log(req.session)
 });
 
-app.use('/moderateurs-signup', signUpSystem);
-app.use('/expediteur-signup', signUpSystem);
-app.use('/livreur-signup', signUpSystem);
-
-app.use("/moderateurs-login",loginSystem);
-app.use("/expediteur-login",loginSystem);
-app.use("/livreur-login",loginSystem);
+setupRoutes(app,'signup',signUpSystem);
+setupRoutes(app,'login',loginSystem);
+app.use("/dashboard",moderatatorDashboard);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
@@ -41,6 +50,8 @@ process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
 });
 
-app.listen(PORT, () => {
-  console.log(`App running on PORT ${PORT}`);
+app.listen(3001, '0.0.0.0', () => {
+  console.log('Server running on http://0.0.0.0:3001');
 });
+
+//test conflects
